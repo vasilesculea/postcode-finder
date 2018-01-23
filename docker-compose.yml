@@ -1,0 +1,31 @@
+version: '3'
+services:
+    nginx:
+        container_name: post-code-finder-nginx
+        image: nginx:latest
+        ports:
+            - 8000:80
+        volumes:
+            - .:/var/www/html
+            - .docker/nginx/site.conf:/etc/nginx/conf.d/default.conf
+        links:
+            - php
+            - mysql
+    php:
+        container_name: post-code-finder-php
+        build:
+            context: .
+            dockerfile: .docker/php/Dockerfile
+        image: php71
+        volumes:
+            - .:/var/www/html
+    mysql:
+        container_name: post-code-finder-mysql
+        image: mysql:5.6
+        ports:
+            - 23306:3306
+        environment:
+            MYSQL_DATABASE: post-code-finder
+            MYSQL_ROOT_PASSWORD: root
+        volumes:
+            - .docker/mysql/data:/var/lib/mysql
