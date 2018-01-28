@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -23,6 +24,9 @@ class CreatePostcodesTable extends Migration
 
             $table->index(['lat', 'lng']);
         });
+
+        DB::statement('ALTER TABLE `postcodes` ADD `point` POINT NOT NULL AFTER `lng`');
+        DB::statement('ALTER TABLE `postcodes` ADD SPATIAL INDEX index_point(`point`)');
     }
 
     /**

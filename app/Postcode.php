@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Values\SpatialTypes\Point;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,7 +25,8 @@ class Postcode extends Model
         'name',
         'postcode',
         'lat',
-        'lng'
+        'lng',
+        'point'
     ];
 
     /**
@@ -37,8 +39,30 @@ class Postcode extends Model
         parent::boot();
 
         static::creating(function ($postcode) {
-            $postcode->forceFill(['escaped_postcode' => $this->escape($postcode->postcode)]);
+            $postcode->forceFill(['escaped_postcode' => $postcode->escape($postcode->postcode)]);
         });
+    }
+
+    /**
+     * Set point attribute.
+     *
+     * @param  App\Values\SpatialTypes\Point  $point
+     * @return void
+     */
+    public function setPointAttribute(Point $point)
+    {
+        $this->attributes['point'] = DB::raw($point->toSpatial());
+    }
+
+    /**
+     * Get point attribute.
+     *
+     * @param  string                         $point
+     * @return App\Values\SpatialTypes\Point
+     */
+    public function getPointAttribute($point)
+    {
+        return Point::fromSpatial($point);
     }
 
     /**
@@ -54,24 +78,19 @@ class Postcode extends Model
     }
 
     /**
-     * Get nearest postcodes by lat and lng.
-     * Distance is calculating in miles for KM we should change number 3959 to 6371 (maybe there should be a configuration file?)
+     * Get nearest postcodes by the given point.
      *
      * @param  Illuminate\Database\Eloquent\Builder  $builder
-     * @param  decimal                               $lat
-     * @param  decimal                               $lng
+     * @param  App\Values\SpatialTypes\Point         $point
      * @param  numeric                               $maximumDistance
      * @return Illuminate\Database\Eloquent\Builder
      */
-    public function scopeNearestByLatAndLng(Builder $builder, $lat, $lng, $maximumDistance = null)
+    public function scopeNearestByLatAndLng(Builder $builder, Point $point, float $maximumDistance = null)
     {
-        $distanceFormula = DB::raw("(3959 * acos(cos(radians({$lat})) * cos(radians(`lat`)) * cos(radians(`lng`) - radians({$lng})) + sin(radians({$lat})) * sin(radians(`lat`))))");
-
-        $builder = $builder->select(['*', DB::raw("{$distanceFormula} AS `distance`")])
-            ->orderBy('distance', 'asc');
+        $builder = $builder->orderBy(DB::raw("st_distance(point, {$point->toSpatial()})"), 'asc');
 
         if (null !== $maximumDistance) {
-            $builder->where($distanceFormula, '<=', $maximumDistance);
+            $builder->whereRaw("(st_distance_sphere(point, {$point->toSpatial()}) * .000621371192) <= {$maximumDistance}");
         }
     }
 
@@ -81,7 +100,7 @@ class Postcode extends Model
      * @param  string  $postcode
      * @return string
      */
-    protected function escape($postcode)
+    public function escape($postcode)
     {
         return preg_replace('/\s+/', '', $postcode);
     }

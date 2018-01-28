@@ -17,8 +17,7 @@ class PostcodeResource extends Resource
         return [
             'postcode' => $this->postcode,
             'lat'      => $this->lat,
-            'lng'      => $this->lng,
-            'distance' => $this->when(isset($this->distance), $this->distance)
+            'lng'      => $this->lng
         ];
     }
 }

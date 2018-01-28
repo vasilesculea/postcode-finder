@@ -21,9 +21,9 @@ services:
             - .:/var/www/html
     mysql:
         container_name: post-code-finder-mysql
-        image: mysql:5.6
+        image: mysql:5.7
         ports:
-            - 23306:3306
+            - 13306:3306
         environment:
             MYSQL_DATABASE: post-code-finder
             MYSQL_ROOT_PASSWORD: root

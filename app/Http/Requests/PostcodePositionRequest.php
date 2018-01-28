@@ -24,8 +24,8 @@ class PostcodePositionRequest extends FormRequest
     public function rules()
     {
         return [
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric'
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180'
         ];
     }
 }

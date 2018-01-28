@@ -8,6 +8,7 @@ use App\Postcode;
 use GuzzleHttp\Client;
 use Illuminate\Support\Arr;
 use Illuminate\Console\Command;
+use App\Values\SpatialTypes\Point;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -128,10 +129,13 @@ class ImportOnsPostcodeDirectory extends Command
                 continue;
             }
 
-            $postCode = tap(Postcode::firstOrCreate(['postcode' => $postCode]))
+            $point = new Point($lat, $lng);
+
+            $postCode = tap(Postcode::firstOrCreate(['postcode' => $postCode], ['point' => $point]))
                 ->update([
-                    'lat' => $lat,
-                    'lng' => $lng
+                    'lat'   => $lat,
+                    'lng'   => $lng,
+                    'point' => $point
                 ]);
         }
     }
