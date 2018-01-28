@@ -92,7 +92,7 @@ class Point
         $left  = strpos($value, '(');
         $right = strrpos($value, ')');
 
-        list($lng, $lat)  = explode(',', preg_replace('/[ ,]+/', ',', trim(substr($value, $left + 1, $right - $left - 1)), 1));
+        list($lat, $lng) = explode(',', preg_replace('/[ ,]+/', ',', trim(substr($value, $left + 1, $right - $left - 1)), 1));
 
         return new static($lat, $lng);
     }
